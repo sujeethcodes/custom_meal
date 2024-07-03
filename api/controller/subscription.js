@@ -13,16 +13,16 @@ export const createSubscriptionPlan = async (req, res) => {
 
     if (findSubscription) {
       findSubscription.subscriptionFeature = {
-        ...JSON.parse(findSubscription.subscriptionFeature),
-        ...data?.subscriptionFeature
+        ...findSubscription.subscriptionFeature,
+        ...data?.subscriptionFeature,
       };
       await findSubscription.save();
-      return res.json("success"); 
+      return res.json(response.FIND_SUBSCRIPTION_SAVE);
     }
 
     const createSubscriptionPlans = await SubscriptionSchema.create(data);
     if (!createSubscriptionPlans) return res.json(response.SUBSCRIPTION_FAILED);
-    
+
     return res.json(response.SUBSCRIPTION_SUCCESS);
   } catch (err) {
     console.log(err.message);
@@ -30,23 +30,69 @@ export const createSubscriptionPlan = async (req, res) => {
   }
 };
 
+export const editSubscriptionFeature = async (req, res) => {
+  try {
+    const data = req?.body;
 
+    const findSubscription = await SubscriptionSchema.findOne({
+      where: { subscriptionplan: data?.subscriptionPlan },
+    });
+
+    if (findSubscription) {
+      findSubscription.subscriptionFeature = {
+        ...JSON.parse(findSubscription.subscriptionFeature),
+        ...data?.subscriptionFeature,
+      };
+      await findSubscription.save();
+      return res.json(response.FIND_SUBSCRIPTION_SAVE);
+    }
+  } catch (err) {
+    console.log(err.message);
+    return res.json(response.INTERNAL_ERR);
+  }
+};
+
+export const removeSubscriptionFeature = async (req, res) => {
+  try {
+    const data = req?.body;
+
+    const findSubscription = await SubscriptionSchema.findOne({
+      where: { subscriptionplan: data?.subscriptionPlan },
+    });
+
+    let featureData = findSubscription.subscriptionFeature;
+
+    if (findSubscription) {
+      if (featureData.hasOwnProperty(req?.body?.subscriptionFeature)) {
+        delete featureData[req?.body?.subscriptionFeature];
+        
+
+        await SubscriptionSchema.update(
+          { subscriptionFeature: featureData },
+          { where: { subscriptionplan: data.subscriptionPlan } }
+        );
+      }
+      return res.json(response.FIND_SUBSCRIPTION_SAVE);
+    }
+  } catch (err) {
+    console.log(err.message);
+    return res.json(response.INTERNAL_ERR);
+  }
+};
 
 export const getSubscriptionUser = async (req, res) => {
   try {
     let subscriptionplan = req.query.subscriptionplan;
-    
+
     const subscriptionUsers = await SubscriptionSchema.findAll({
       where: { subscriptionplan: subscriptionplan },
       include: {
         model: UserModel,
       },
     });
-    
-    if (subscriptionUsers && subscriptionUsers.length > 0) {
-     
-      const getSubscriptionBasedUser = subscriptionUsers.map((each) => ({
 
+    if (subscriptionUsers && subscriptionUsers.length > 0) {
+      const getSubscriptionBasedUser = subscriptionUsers.map((each) => ({
         subscriptionPlan: each.User.subscriptionPlan,
         subscriptionFeature: each.subscriptionFeature
           ? helperUtils.getTrueValues(each.subscriptionFeature)

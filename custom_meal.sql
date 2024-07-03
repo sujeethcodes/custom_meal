@@ -9,7 +9,7 @@ subscription VARCHAR(255) NOT NULL
 CREATE TABLE SubscriptionPlan (
 id INT AUTO_INCREMENT PRIMARY KEY,
 subscriptionPlan VARCHAR(255) NOT NULL,
-subscriptionFeature TEXT CHECK (JSON_VALID(subscriptionFeature)),
+subscriptionFeature JSON,
 status VARCHAR(255) DEFAULT "active"
 );
 
