@@ -40,7 +40,7 @@ export const editSubscriptionFeature = async (req, res) => {
 
     if (findSubscription) {
       findSubscription.subscriptionFeature = {
-        ...JSON.parse(findSubscription.subscriptionFeature),
+        ...findSubscription.subscriptionFeature,
         ...data?.subscriptionFeature,
       };
       await findSubscription.save();
